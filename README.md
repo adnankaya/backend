@@ -6,4 +6,4 @@
 - if there is error type: `dotnet tool install --global dotnet-ef`
 
 # Migrate
-- `dotnet ef database ef`
+- `dotnet ef database update`

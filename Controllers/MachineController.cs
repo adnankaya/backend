@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using backend.Data;
 using backend.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,18 @@ namespace backend.Controllers
             .Include(m => m.Expert)
             .ToList();
             return Ok(machineList);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetMachineById(int id)
+        {
+            Machine machine = await _dbContext.tMachine
+            .Where(m => m.Id == id)
+            .Include(m => m.Expert)
+            .Include(m => m.machinePieces)
+                .ThenInclude(mp => mp.piece)
+            .SingleOrDefaultAsync();
+
+            return Ok(machine);
         }
         [HttpPost]
         public IActionResult PostMachine([FromBody] Machine machineData)
