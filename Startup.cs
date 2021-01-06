@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using backend.Data;
+using backend.Data.Abstract;
+using backend.Data.Concrete;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -35,11 +37,12 @@ namespace backend
 
             // for json serializers
             services.AddControllersWithViews().AddNewtonsoftJson(
-                options => 
+                options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
 
-
+            // interface declarations
+            services.AddScoped<IExpertRepo, ExpertRepo>();
 
 
 

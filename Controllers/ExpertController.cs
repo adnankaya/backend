@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using backend.Data;
+using backend.Data.Abstract;
 using backend.DTOs;
 using backend.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -12,64 +14,52 @@ namespace backend.Controllers
     [Route("api/experts")]
     public class ExpertController : ControllerBase
     {
-        private readonly SqliteDbContext _dbContext;
-        public ExpertController(SqliteDbContext dbContext)
+        private readonly IExpertRepo _expertRepo;
+        public ExpertController(IExpertRepo expertRepo)
         {
-            _dbContext = dbContext;
+            _expertRepo = expertRepo;
         }
 
         [HttpGet]
-        public IActionResult GetExperts([FromQuery(Name = "fname")] string fname)
+        public async Task<IActionResult> GetExperts([FromQuery(Name = "fname")] string fname)
         {
-            var query = _dbContext.tExpert.AsQueryable();
-            if (fname != null)
-                query = query.Where(e => e.firstName.Contains(fname));
-
-            List<Expert> expertList = query.Include(e => e.machines).ToList();
+            List<Expert> expertList = await _expertRepo.GetList(fname);
             return Ok(expertList);
         }
         [HttpGet("custom-list")]
-        public IActionResult GetExpertCustomExperts()
+        public async Task<IActionResult> GetCustomExperts()
         {
-            // List<ExpertListDTO> customList = _dbContext.tExpert
-            // .Include(e => e.machines)
-            // .Select(e => new ExpertListDTO{
-            //     fullName = $"{e.firstName} {e.lastName}",
-            //     machineNames = e.machines.Select(m=>m.name).ToList()
-            // })            
-            // .ToList();
+            List<ExpertListDTO> customList = await _expertRepo.GetCustomList();
 
-            // second way
-            var customList = _dbContext.tExpert
-            .Include(e => e.machines)
-            .Select(e => new
-            {
-                fullName = $"{e.firstName} {e.lastName}",
-                machineNames = e.machines.Select(m => m.name).ToList(),
-                message = "Tebrikler başardın!"
-            })
-            .ToList();
+            // // second way
+            // var customList = _expertRepo.tExpert
+            // .Include(e => e.machines)
+            // .Select(e => new
+            // {
+            //     fullName = $"{e.firstName} {e.lastName}",
+            //     machineNames = e.machines.Select(m => m.name).ToList(),
+            //     message = "Tebrikler başardın!"
+            // })
+            // .ToList();
             return Ok(customList);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetExpertById(int id)
+        public async Task<IActionResult> GetExpertById(int id)
         {
-            Expert expert = _dbContext.tExpert
-                .Where(e => e.Id == id)
-                .Include(e => e.machines)
-                .SingleOrDefault();
-            return Ok(expert);
+          Expert expert = await _expertRepo.GetById(id);
+          return Ok(expert);  
         }
 
         [HttpPost]
-        public IActionResult PostExpert([FromBody] Expert expertData)
+        public async Task<IActionResult> PostExpert([FromBody] Expert expertData)
         {
-            _dbContext.tExpert.Add(expertData);
-            int res = _dbContext.SaveChanges();
-            if (res > 0)
-                return Ok(expertData);
-            return BadRequest();
+            return Ok(await _expertRepo.Post(expertData));
+        }
+        [HttpPut]
+        public async Task<IActionResult> PutExpert([FromBody] Expert expertNewData)
+        {
+            return Ok(await _expertRepo.Put(expertNewData));
         }
     }
 }
